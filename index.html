@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400..700;1,9..40,400..700&family=Fraunces:opsz,wght@9..144,500..700&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="theme-color" content="#070b12" />
+    <meta
+      name="description"
+      content="Mapa interactivo de Nueva York: puntos de interés, GPS, visitados y rutas por días."
+    />
+    <title>Mapa Nueva York</title>
+  </head>
+  <body>
+    <button type="button" id="btn-sidebar-toggle" class="btn-sidebar-toggle" aria-label="Abrir menú">☰</button>
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+    <div id="app" class="layout">
+      <aside class="sidebar" aria-label="Panel">
+        <div class="brand">
+          <span class="brand-badge" aria-hidden="true">🗽</span>
+          <div class="brand-text">
+            <h1>Mapa NYC</h1>
+            <p class="muted">Sitios · GPS · rutas · todo local</p>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="btn-locate" class="btn primary">Mi ubicación</button>
+          <button type="button" id="btn-stop-gps" class="btn" hidden>
+            Parar GPS
+          </button>
+          <button type="button" id="btn-add-toggle" class="btn">Modo añadir punto</button>
+        </div>
+        <p id="gps-hint" class="hint" role="status"></p>
+
+        <nav class="tab-nav" aria-label="Secciones">
+          <button type="button" id="btn-tab-map" class="tab-btn tab-btn--active">🗺️ Mapa</button>
+          <button type="button" id="btn-tab-food" class="tab-btn">🍽️ Comer</button>
+        </nav>
+
+        <div id="tab-map">
+        <div class="search-block">
+          <label class="search-label" for="search-poi">Buscar lugar</label>
+          <input
+            type="search"
+            id="search-poi"
+            placeholder="Ej. Met, High Line, puente…"
+            autocomplete="off"
+            enterkeyhint="search"
+          />
+          <p id="search-summary" class="search-summary" aria-live="polite"></p>
+        </div>
+
+        <fieldset class="filters">
+          <legend>Filtros</legend>
+          <label class="check">
+            <input type="checkbox" id="filter-pending" />
+            Solo pendientes
+          </label>
+          <label class="check">
+            <input type="checkbox" id="filter-radius" />
+            Solo a menos de 500 m (requiere GPS)
+          </label>
+          <label class="select-row">
+            Categoría
+            <select id="filter-category"></select>
+          </label>
+          <label class="select-row">
+            Zona
+            <select id="filter-zone"></select>
+          </label>
+        </fieldset>
+
+        <section class="panel-section">
+          <h2>Lugares</h2>
+          <div id="poi-list" class="poi-list"></div>
+        </section>
+
+        <section class="panel-section routes-section">
+          <h2>Rutas por día</h2>
+          <div class="route-toolbar">
+            <label class="select-row grow">
+              Día activo
+              <select id="route-day"></select>
+            </label>
+            <button type="button" id="btn-day-rename" class="btn small btn-icon-only" title="Renombrar día">✏️</button>
+            <div class="day-order-btns">
+              <button type="button" id="btn-day-up" class="btn small btn-icon-only" title="Mover día hacia arriba">▲</button>
+              <button type="button" id="btn-day-down" class="btn small btn-icon-only" title="Mover día hacia abajo">▼</button>
+            </div>
+            <button type="button" id="btn-new-day" class="btn small">Nuevo día</button>
+            <button type="button" id="btn-del-day" class="btn small btn-danger">Borrar día</button>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="chk-show-route" checked />
+            Ver línea en el mapa (orden de la lista)
+          </label>
+          <button type="button" id="btn-sort-nearest" class="btn small wide">
+            Ordenar paradas por cercanía
+          </button>
+          <div class="route-edit-row">
+            <button type="button" id="btn-route-edit" class="btn small">✏️ Editar ruta</button>
+            <label class="check route-free-check" title="Dibuja línea recta entre puntos, sin seguir calles">
+              <input type="checkbox" id="chk-route-free" />
+              Línea libre
+            </label>
+          </div>
+          <p class="muted tiny">En modo editar: clic en el mapa para añadir puntos de desvío · arrastra el círculo para moverlo · doble clic para eliminarlo.</p>
+          <ul id="route-stops" class="route-stops"></ul>
+        </section>
+
+        <section class="panel-section sharing-section">
+          <h2>Viajeros en tiempo real</h2>
+          <label class="check">
+            <input type="checkbox" id="chk-share-location" />
+            Compartir mi ubicación con el grupo
+          </label>
+          <p id="sharing-hint" class="muted tiny"></p>
+          <ul id="travelers-list" class="travelers-list"></ul>
+        </section>
+
+        <section class="panel-section export-section">
+          <h2>Copia de seguridad</h2>
+          <div class="row">
+            <button type="button" id="btn-export" class="btn small">Exportar JSON</button>
+            <label class="btn small file-btn">
+              Importar
+              <input type="file" id="file-import" accept="application/json,.json" hidden />
+            </label>
+          </div>
+        </section>
+        </div><!-- /tab-map -->
+
+        <div id="tab-food" hidden>
+          <div class="food-header">
+            <p id="food-subtitle" class="muted tiny"></p>
+            <label class="check food-near-check">
+              <input type="checkbox" id="food-near-only" />
+              Solo cerca de mis paradas (&lt; 800 m)
+            </label>
+          </div>
+          <div id="food-list" class="poi-list food-list"></div>
+        </div><!-- /tab-food -->
+      </aside>
+
+      <main class="map-pane">
+        <div id="map" role="application" aria-label="Mapa de Nueva York"></div>
+      </main>
+    </div>
+
+    <dialog id="dlg-add" class="dlg">
+      <form id="form-add">
+        <h3>Nuevo punto</h3>
+        <label>
+          Nombre
+          <input name="name" required maxlength="120" autocomplete="off" />
+        </label>
+        <label>
+          Categoría
+          <select name="category" id="add-category"></select>
+        </label>
+        <label>
+          Notas (opcional)
+          <input name="notes" maxlength="500" autocomplete="off" />
+        </label>
+        <label>
+          Foto — URL (opcional)
+          <input name="photo" type="url" placeholder="https://…" autocomplete="off" />
+        </label>
+        <input type="hidden" name="lat" />
+        <input type="hidden" name="lng" />
+        <div class="dlg-actions">
+          <button type="button" id="dlg-cancel" class="btn">Cancelar</button>
+          <button type="submit" class="btn primary">Guardar</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

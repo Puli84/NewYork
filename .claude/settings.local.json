@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(netstat -ano)",
+      "Bash(taskkill:*)",
+      "Bash(cmd.exe /c \"taskkill /PID 14928 /F\")",
+      "Bash(cmd.exe /c \"taskkill /PID 14928 /F 2>&1\")",
+      "Bash(cmd.exe /c \"taskkill /PID 14928 /F && echo DONE\" 2>&1)",
+      "Bash(powershell.exe -Command \"Stop-Process -Id 14928 -Force; Write-Host 'Done'\")"
+    ]
+  }
+}
