@@ -1679,7 +1679,7 @@ async function bootstrap(): Promise<void> {
   fillCategorySelects()
   fillZoneSelect()
 
-  const res = await fetch('/data/nyc-pois.geojson')
+  const res = await fetch(`${import.meta.env.BASE_URL}data/nyc-pois.geojson`)
   const fc = (await res.json()) as { features: PoiFeature[] }
   seedFeatures = fc.features ?? []
   rebuildCoordIndex()
